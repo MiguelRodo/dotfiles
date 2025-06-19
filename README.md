@@ -19,7 +19,7 @@ Its primary purpose is to configure Git and/or HuggingFace authentication and co
 Clone and install for your environment:
 
 ```bash
-git clone https://github.com/SATVILab/dotfiles.git "$HOME"/dotfiles
+git clone https://github.com/MiguelRodo/dotfiles.git "$HOME"/dotfiles
 "$HOME"/dotfiles/install-env.sh <env>
 ```
 
