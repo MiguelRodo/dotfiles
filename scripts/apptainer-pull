@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Load shared helpers (must define apptainer_common_get_cache_dirs)
-source "$HOME/.local/bin/apptainer-common.sh"
+source "$HOME/.local/bin/apptainer-common"
 
 usage() {
   cat <<EOF
@@ -23,7 +23,7 @@ EOF
 
 # Defaults
 SIF_NAME=""
-branch="$(apptainer_common_get_branch | tr '[:upper:]' '[:lower:]')"
+branch="$(apptainer_common_get_current_branch | tr '[:upper:]' '[:lower:]')"
 BRANCH="-$branch"
 NO_APPEND=false
 TAG="latest";
