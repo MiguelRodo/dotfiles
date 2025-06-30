@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: $0 [-s <sif>] [-d <directory>] [-n] -- <R expression>
+  -s, --sif           : Explicit SIF filename (with or without .sif)
+  -d, --directory     : Directory to search first (skips cache dirs)
+  -h, --help          : Show this help and exit
+  <R expression>      : The R code to run (passed to Rscript -e)
+EOF
+  exit 1
+}
+
+quiet=false
+args_for_path=()
+custom_command=()
+saw_cmd=false
+
+# parse flags
+while [[ $# -gt 0 ]]; do
+  if $saw_cmd; then
+    custom_command+=( "$1" )
+    shift
+    continue
+  fi
+
+  case $1 in
+    -s|--sif)
+      args_for_path+=(--sif "$2")
+      shift 2
+      ;;
+    -d|--directory)
+      args_for_path+=(--directory "$2")
+      shift 2
+      ;;
+    -q|--quiet)
+      quiet=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      ;;
+    --)
+      saw_cmd=true
+      shift
+      ;;
+    -*)
+      usage
+      ;;
+    *)
+      saw_cmd=true
+      custom_command+=( "$1" )
+      shift
+      ;;
+  esac
+done
+
+# locate the SIF
+if ! sif_path=$(apptainer-path "${args_for_path[@]}"); then
+  [[ $quiet != true ]] && echo "Error: no SIF found" >&2
+  exit 1
+fi
+
+# informational output suppressed in quiet mode
+if [[ $quiet != true ]]; then
+  echo "Found SIF: $sif_path"
+fi
+
+# ——— Exec the “custom_command” inside the container —————————————————
+if (( ${#custom_command[@]} )); then
+  [[ $quiet != true ]] && \
+    echo "Running inside container: ${custom_command[*]}"
+  # this expands your array exactly as separate args:
+  exec apptainer exec "$sif_path" "${custom_command[@]}"
+else
+  [[ $quiet != true ]] && echo "Opening interactive shell…"
+  exec apptainer shell "$sif_path"
+fi
